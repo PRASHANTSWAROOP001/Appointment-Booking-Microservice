@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:17.4
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: user101
+      POSTGRES_PASSWORD: pass101
+      POSTGRES_DB: appointment
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+    pgdata:      
+         

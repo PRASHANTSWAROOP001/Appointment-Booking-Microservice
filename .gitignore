@@ -1,0 +1,5 @@
+node_modules
+dockerIgnore
+.env
+dist
+logs
