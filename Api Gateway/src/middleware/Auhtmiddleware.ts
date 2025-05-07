@@ -3,10 +3,16 @@ import logger from "../utils/logger"
 import { Request, Response, NextFunction } from "express"
 import dotenv from "dotenv"
 
-
-interface AuthenticatedRequest extends Request {
-    user?: string | JwtPayload,
+interface JwtUserPayload extends JwtPayload {
+    userId: string;
+    role: string;
+    email: string;
 }
+  
+interface AuthenticatedRequest extends Request {
+    user?: JwtUserPayload;
+}
+
 
 dotenv.config()
 
@@ -20,22 +26,24 @@ const verifyAccessToken = async (req: AuthenticatedRequest, res: Response, next:
 
         if (!token) {
             logger.warn("Missing auth token");
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 message: "Auth token is missing"
             });
+            return;
         }
 
-        const verifiedToken = jwt.verify(token, JWT_SECRET);
+        const verifiedToken = jwt.verify(token, JWT_SECRET) as JwtUserPayload
         req.user = verifiedToken;
         next();
 
     } catch (error: any) {
         logger.error("Token verification failed", error);
-        return res.status(401).json({
+         res.status(401).json({
             success: false,
             message: error.name === "TokenExpiredError" ? "Token has expired" : "Invalid token"
         });
+        return;
     }
 };
 

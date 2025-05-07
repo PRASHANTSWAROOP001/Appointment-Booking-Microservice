@@ -3,8 +3,9 @@ import dotenv from "dotenv"
 import cors from "cors"
 import helmet from "helmet"
 import logger from "./utils/logger";
-import { authServiceProxy } from "./proxy";
+import { authServiceProxy, listingServiceProxy } from "./proxy";
 import { rateLimiterConfigDDOS, rateLimitMiddleware } from "./utils/rateLimit";
+import verifyAccessToken from "./middleware/Auhtmiddleware";
 
 dotenv.config()
 
@@ -19,6 +20,7 @@ app.use(cors())
 app.use(rateLimitMiddleware(rateLimiterConfigDDOS))
 
 app.use("/auth-route", authServiceProxy)
+app.use("/listing-route", verifyAccessToken,listingServiceProxy)
 
 
 app.listen(PORT, ()=>{
