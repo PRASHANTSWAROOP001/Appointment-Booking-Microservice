@@ -4,6 +4,7 @@ import cors from "cors"
 import helmet from "helmet"
 import logger from "./utils/logger";
 import { authServiceProxy } from "./proxy";
+import { rateLimiterConfigDDOS, rateLimitMiddleware } from "./utils/rateLimit";
 
 dotenv.config()
 
@@ -14,6 +15,8 @@ const app = express();
 
 app.use(helmet())
 app.use(cors())
+
+app.use(rateLimitMiddleware(rateLimiterConfigDDOS))
 
 app.use("/auth-route", authServiceProxy)
 
