@@ -54,12 +54,12 @@ enum Role {
 model Shop {
   id          String    @id @default(uuid())
   userId      Int @unique
-  user        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   description String?
   category    String
-  openTime    DateTime
-  closeTime   DateTime
+  openTime    String
+  closeTime   String
   service     Service?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -73,7 +73,7 @@ model Shop {
 model Service {
   id          String   @id @default(uuid())
   shopId      String @unique
-  shop        Shop     @relation(fields: [shopId], references: [id])
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   price       Float
   title       String
   description String?
@@ -86,7 +86,7 @@ model Service {
 model Location {
   id        String @id @default(uuid())
   shopId    String @unique
-  shop      Shop   @relation(fields: [shopId], references: [id])
+  shop      Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
   address   String
   city      String
   state     String
