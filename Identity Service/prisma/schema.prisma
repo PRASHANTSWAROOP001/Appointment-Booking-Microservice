@@ -1,12 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -14,42 +8,90 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id Int @id @default(autoincrement())
-  name String 
-  email String @unique
-  role Role @default(USER)
-  password String
+model RefreshToken {
+  id        String   @id
+  userId    Int
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tokens RefreshToken[]
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Session   Session?
+
 }
 
-enum Role{
+model Session {
+  id             String       @id
+  refreshTokenId String       @unique
+  ipAddress      String?
+  userAgent      String?
+  location       String?
+  createdAt      DateTime     @default(now())
+  expiredAt      DateTime
+  revoked        Boolean      @default(false)
+  revokedAt      DateTime?
+  RefreshToken   RefreshToken @relation(fields: [refreshTokenId], references: [id])
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  name         String
+  email        String         @unique
+  role         Role           @default(USER)
+  password     String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime
+  RefreshToken RefreshToken[]
+  Shop Shop?
+}
+
+enum Role {
   USER
   SELLER
   ADMIN
 }
 
-model RefreshToken{
-  id String @id @default(uuid())
-  userId Int
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  expiresAt DateTime
-  revoked Boolean @default(false)
-  session Session?
+
+model Shop {
+  id          String    @id @default(uuid())
+  userId      Int @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  category    String
+  openTime    String
+  closeTime   String
+  service     Service?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  location    Location?
+
+  @@index([name])
+  @@index([description])
+  @@index([category])
 }
 
-model Session{
-  id String @id @default(uuid())
-  refreshTokenId String @unique
-  refreshToken RefreshToken @relation(fields: [refreshTokenId], references: [id])
-  ipAddress String?
-  userAgent String?
-  location String?
-  createdAt DateTime @default(now())
-  expiredAt DateTime
-  revoked Boolean @default(false)
-  revokedAt DateTime? 
+model Service {
+  id          String   @id @default(uuid())
+  shopId      String @unique
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  price       Float
+  title       String
+  description String?
+  duration    Int      // Duration in minutes (or hours)
+
+  @@index([price])
+  @@index([title])
+}
+
+model Location {
+  id        String @id @default(uuid())
+  shopId    String @unique
+  shop      Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  address   String
+  city      String
+  state     String
+  country   String
+  zipCode   String
+  latitude  Float?
+  longitude Float?
 }
