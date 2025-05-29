@@ -13,6 +13,7 @@ const sellerAuthMiddleware = (req:VerifiedSellerRequest, res:Response, next:Next
 
     const role:string|undefined = req.header('x-user-role')
 
+
     if(!userId || !role || role !== 'SELLER'){
         res.status(400).json({
             success:false,

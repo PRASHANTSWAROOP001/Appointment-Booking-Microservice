@@ -3,6 +3,10 @@ import dotenv from "dotenv";
 import helmet from "helmet";
 import cors from "cors";
 import logger from "./utils/logger";
+import sellerLocation from "./route/sellerLocation"
+import sellerShop from "./route/sellerRoute";
+import sellerService from "./route/sellerServiceRoute"
+import { sellerAuthMiddleware } from "./middleware/authMiddleware";
 
 
 dotenv.config()
@@ -32,4 +36,8 @@ app.use("/api/seller/check-point", (req:Request, res:Response)=>{
         message:"you have hit the end point successfully. bravo touch base success."
     })
 })
+
+app.use("/api/seller/location",sellerAuthMiddleware, sellerLocation);
+app.use("/api/seller/shop", sellerAuthMiddleware,sellerShop)
+app.use("/api/seller/service",sellerAuthMiddleware,sellerService)
 

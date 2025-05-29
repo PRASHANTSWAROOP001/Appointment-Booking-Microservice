@@ -3,3 +3,4 @@ dockerIgnore
 .env
 dist
 logs
+**/.generated/
