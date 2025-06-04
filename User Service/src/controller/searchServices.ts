@@ -10,7 +10,7 @@ export const searchAllServices = async (
 ): Promise<void> => {
   try {
     const {
-      title,
+      title, 
       category,
       city,
       state,

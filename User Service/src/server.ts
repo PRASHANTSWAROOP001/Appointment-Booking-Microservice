@@ -36,4 +36,4 @@ app.use("/api/user/check-point", (req:express.Request,res:express.Response)=>{
     })
 })
 
-app.use("/api",userAuthMiddleware,searchRouter)
+app.use("/api/user",userAuthMiddleware,searchRouter)

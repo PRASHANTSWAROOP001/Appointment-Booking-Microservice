@@ -14,7 +14,7 @@ const userAuthMiddleware = (req:VerifiedUserRequest, res:Response, next:NextFunc
     const role:string|undefined = req.header('x-user-role')
 
 
-    if(!userId || !role || role == 'SELLER' || role == 'USER'){
+    if(!userId || !role){
         res.status(400).json({
             success:false,
             message:"Verify User Role or missing the auth details."

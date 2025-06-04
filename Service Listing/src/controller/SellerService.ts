@@ -121,6 +121,8 @@ const deleteService = async (req:Request, res:Response):Promise<void>=>{
     }
 }
 
+// paginate this
+
 const getAllServicesForShopper = async (req:VerifiedSellerRequest, res:Response)=>{
      logger.info("get all service end point is hit")
     try {
