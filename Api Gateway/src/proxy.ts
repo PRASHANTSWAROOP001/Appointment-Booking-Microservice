@@ -20,6 +20,8 @@ const authTargetUrl:string = process.env.IDENTITY_SERVICE!
 
 const listingTargetUrl:string = process.env.LISTING_SERVICE!
 
+const userServiceTargetUrl:string = process.env.USER_SERVICE!
+
 const pinoLogPlugin:Plugin = (proxyServer)=>{
     proxyServer.on('proxyReq',(proxyReq,req, res)=>{
         logger.info(`[PROXY] ${req.method} ${req.url}`);
@@ -79,6 +81,37 @@ const listingServiceProxy:RequestHandler = createProxyMiddleware({
 
 })
 
+const userServiceProxy:RequestHandler = createProxyMiddleware({
+    target:userServiceTargetUrl,
+    changeOrigin:true,
+    pathRewrite:{
+        '^/user-route': '', 
+    },
+    plugins:[
+        pinoLogPlugin
+    ],
+    on: {
+        proxyReq: (proxyReq, req, res) => {
+          const fullUrl = `${proxyReq.protocol || 'http:'}//${proxyReq.getHeader('host')}${proxyReq.path || ''}`;
+          logger.info(`[PROXY] Rewriting and forwarding to: ${fullUrl}`);
+
+          const user = (req as any).user;
+
+          logger.info(`user data: ${user}`)
+
+          if(user){
+            proxyReq.setHeader('x-user-id', user?.userId);
+            proxyReq.setHeader('x-user-role', user?.role)
+          }
+
+        },
+        proxyRes: (proxyRes, req, res) => {
+            logger.info(`[PROXY] Response status from target: ${proxyRes.statusCode}`);
+        }
+      }, 
+
+})
 
 
-export {authServiceProxy, listingServiceProxy}
+
+export {authServiceProxy, listingServiceProxy, userServiceProxy}

@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Location {
+  id        String @id
+  shopId    String @unique
+  address   String
+  city      String
+  state     String
+  country   String
+  zipCode   String
+  latitude  Float?
+  longitude Float?
+  Shop      Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+}
+
+model RefreshToken {
+  id        String   @id
+  userId    Int
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Session   Session?
+}
+
+model Service {
+  id          String  @id
+  shopId      String  @unique
+  price       Float
+  title       String
+  description String?
+  duration    Int
+  Shop        Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([price])
+  @@index([title])
+}
+
+model Session {
+  id             String       @id
+  refreshTokenId String       @unique
+  ipAddress      String?
+  userAgent      String?
+  location       String?
+  createdAt      DateTime     @default(now())
+  expiredAt      DateTime
+  revoked        Boolean      @default(false)
+  revokedAt      DateTime?
+  RefreshToken   RefreshToken @relation(fields: [refreshTokenId], references: [id])
+}
+
+model Shop {
+  id          String    @id
+  userId      Int       @unique
+  name        String
+  description String?
+  category    String
+  openTime    String
+  closeTime   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  Location    Location?
+  Service     Service?
+  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([category])
+  @@index([description])
+  @@index([name])
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  name         String
+  email        String         @unique
+  role         Role           @default(USER)
+  password     String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime
+  RefreshToken RefreshToken[]
+  Shop         Shop?
+}
+
+enum Role {
+  USER
+  SELLER
+  ADMIN
+}
