@@ -60,7 +60,7 @@ model Shop {
   category    String
   openTime    String
   closeTime   String
-  service     Service?
+  service     Service[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   location    Location?
@@ -72,7 +72,7 @@ model Shop {
 
 model Service {
   id          String   @id @default(uuid())
-  shopId      String @unique
+  shopId      String 
   shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
   price       Float
   title       String

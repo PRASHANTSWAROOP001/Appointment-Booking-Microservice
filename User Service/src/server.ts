@@ -3,7 +3,8 @@ import dotenv from "dotenv"
 import helmet from "helmet";
 import cors from "cors";
 import logger from "./utils/logger";
-import { P } from "pino";
+import searchRouter from "./router/searchRouter"
+import { userAuthMiddleware } from "./middleware/authMiddleware";
 
 dotenv.config();
 
@@ -35,3 +36,4 @@ app.use("/api/user/check-point", (req:express.Request,res:express.Response)=>{
     })
 })
 
+app.use("/api",userAuthMiddleware,searchRouter)
