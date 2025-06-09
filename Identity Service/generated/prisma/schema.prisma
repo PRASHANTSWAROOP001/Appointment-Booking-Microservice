@@ -32,15 +32,17 @@ model Session {
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  name         String
-  email        String         @unique
-  role         Role           @default(USER)
-  password     String
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime
-  RefreshToken RefreshToken[]
-  Shop         Shop?
+  id              Int              @id @default(autoincrement())
+  name            String
+  email           String           @unique
+  role            Role             @default(USER)
+  password        String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime
+  RefreshToken    RefreshToken[]
+  Shop            Shop?
+  CustomerBooking Booking[]        @relation("CustomerBooking")
+  ChangedBy       BookingHistory[]
 }
 
 enum Role {
@@ -50,18 +52,20 @@ enum Role {
 }
 
 model Shop {
-  id          String    @id @default(uuid())
-  userId      Int       @unique
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  category    String
-  openTime    String
-  closeTime   String
-  service     Service[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  location    Location?
+  id             String    @id @default(uuid())
+  userId         Int       @unique
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  category       String
+  openTime       String
+  closeTime      String
+  advanceBooking Int       @default(24) // user can book service 24 hours earlier.
+  service        Service[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  location       Location?
+  Booking        Booking[]
 
   @@index([name])
   @@index([description])
@@ -69,13 +73,14 @@ model Shop {
 }
 
 model Service {
-  id          String  @id @default(uuid())
+  id          String    @id @default(uuid())
   shopId      String
-  shop        Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  shop        Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
   price       Float
   title       String
   description String?
   duration    Int // Duration in minutes (or hours)
+  Booking     Booking[]
 
   @@index([price])
   @@index([title])
@@ -92,4 +97,57 @@ model Location {
   zipCode   String
   latitude  Float?
   longitude Float?
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  shopId          String
+  serviceId       String
+  customerId      Int
+  appointmentTime DateTime
+  endTime         DateTime
+  status          BookingStatus @default(PENDING)
+  totalPrice      Float
+  paymentStatus   PaymentStatus @default(PENDING)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // relationships
+  Shop           Shop             @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  Service        Service          @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  Customer       User             @relation("CustomerBooking", fields: [customerId], references: [id], onDelete: Cascade)
+  BookingHistory BookingHistory[] // <--- Add this line
+
+  @@index([customerId])
+  @@index([status])
+  @@index([shopId, appointmentTime])
+}
+
+model BookingHistory {
+  id        String        @id @default(cuid())
+  status    BookingStatus
+  bookingId String
+  changedAt DateTime      @default(now())
+  changedBy Int?
+  reason    String?
+
+  Booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  ChangedBy User?   @relation(fields: [changedBy], references: [id])
+
+  @@index([bookingId])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  FAILED
+  REFUNDED
 }

@@ -31,13 +31,14 @@ model RefreshToken {
 }
 
 model Service {
-  id          String  @id
-  shopId      String  @unique
+  id          String    @id
+  shopId      String
   price       Float
   title       String
   description String?
   duration    Int
-  Shop        Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  Booking     Booking[]
+  Shop        Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
 
   @@index([price])
   @@index([title])
@@ -57,18 +58,20 @@ model Session {
 }
 
 model Shop {
-  id          String    @id
-  userId      Int       @unique
-  name        String
-  description String?
-  category    String
-  openTime    String
-  closeTime   String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime
-  Location    Location?
-  Service     Service?
-  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String    @id
+  userId         Int       @unique
+  name           String
+  description    String?
+  category       String
+  openTime       String
+  closeTime      String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime
+  advanceBooking Int       @default(24)
+  Booking        Booking[]
+  Location       Location?
+  Service        Service[]
+  User           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([category])
   @@index([description])
@@ -76,19 +79,71 @@ model Shop {
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  name         String
-  email        String         @unique
-  role         Role           @default(USER)
-  password     String
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime
-  RefreshToken RefreshToken[]
-  Shop         Shop?
+  id             Int              @id @default(autoincrement())
+  name           String
+  email          String           @unique
+  role           Role             @default(USER)
+  password       String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime
+  Booking        Booking[]
+  BookingHistory BookingHistory[]
+  RefreshToken   RefreshToken[]
+  Shop           Shop?
+}
+
+model Booking {
+  id              String           @id @default(cuid())
+  shopId          String
+  serviceId       String
+  customerId      Int
+  appointmentTime DateTime
+  endTime         DateTime
+  status          BookingStatus    @default(PENDING)
+  totalPrice      Float
+  paymentStatus   PaymentStatus    @default(PENDING)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  User            User             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  Service         Service          @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  Shop            Shop             @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  BookingHistory  BookingHistory[]
+
+  @@index([customerId])
+  @@index([shopId, appointmentTime])
+  @@index([status])
+}
+
+model BookingHistory {
+  id        String        @id @default(cuid())
+  status    BookingStatus
+  bookingId String
+  changedAt DateTime      @default(now())
+  changedBy Int?
+  reason    String?
+  Booking   Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  User      User?         @relation(fields: [changedBy], references: [id])
+
+  @@index([bookingId])
 }
 
 enum Role {
   USER
   SELLER
   ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  FAILED
+  REFUNDED
 }

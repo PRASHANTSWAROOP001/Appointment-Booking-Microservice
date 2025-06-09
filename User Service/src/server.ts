@@ -5,6 +5,7 @@ import cors from "cors";
 import logger from "./utils/logger";
 import searchRouter from "./router/searchRouter"
 import { userAuthMiddleware } from "./middleware/authMiddleware";
+import appointmentRouter from "./router/appointmentRouter"
 
 dotenv.config();
 
@@ -36,4 +37,6 @@ app.use("/api/user/check-point", (req:express.Request,res:express.Response)=>{
     })
 })
 
+
 app.use("/api/user",userAuthMiddleware,searchRouter)
+app.use("/api/appointment", userAuthMiddleware, appointmentRouter)
